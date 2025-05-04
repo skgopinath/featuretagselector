@@ -116,13 +116,16 @@ Project/
 
 ## Screenshots
 ### 1. Feature and Tag Selector
-![Feature and Tag Selector](https://via.placeholder.com/800x400)
+![image](https://github.com/user-attachments/assets/c224762f-8a23-4235-9569-0e428b0cc75e)
+
 
 ### 2. Extract Tags
-![Extract Tags](https://via.placeholder.com/800x400)
+![image](https://github.com/user-attachments/assets/c7162c59-250a-475f-bc36-dbddf44fa08a)
+
 
 ### 3. Generated Command
-![Generated Command](https://via.placeholder.com/800x400)
+![image](https://github.com/user-attachments/assets/4b7f605e-20d7-484a-acc1-2f5ca70d6db3)
+
 
 ## Future Enhancements
 - Add support for custom folder and file naming conventions.
