@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Feature and Tag Selector</title>
+   <!-- Add Bootstrap Theme -->
+   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+   <link href="https://bootswatch.com/4/sandstone/bootstrap.min.css" rel="stylesheet"> <!-- Sandstone Theme -->
+   <style>
+      body { font-family: Calibri, sans-serif; margin: 0; padding: 0; height: 100vh; background-color: #f8f9fa; }
+      .container { display: flex; flex-direction: column; height: 100%; padding: 20px; }
+      .left-panel { flex: 1; padding-right: 20px; border-right: 1px solid #dee2e6; overflow-y: auto; }
+      .features-container, .tags-container { margin-bottom: 20px; }
+      .tags label { display: block; margin-bottom: 5px; }
+      select { width: 100%; height: 200px; }
+      pre { width: 100%; height: 300px; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word; background-color: #e9ecef; padding: 10px; border-radius: 5px; }
+      .features-row { display: flex; align-items: center; }
+      .features-row select { flex: 1; margin-right: 20px; }
+      .select-all-container { margin-bottom: 10px; }
+      .command-container { flex: 1; padding: 20px 20px 20px 20px; background-color: #ffffff; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+      .btn-copy { margin-top: 10px; }
+      .copy-status { margin-top: 10px; color: green; }
+      .subfolders-container { margin-bottom: 20px; }
+      .btn-toggle { margin: 5px; }
+      .features-container { background-color: #ffffff; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+      #commandOutput {
+         word-wrap: break-word;
+         white-space: pre-wrap;
+      }
+      .logo-container {
+         position: absolute;
+         top: 10px;
+         right: 10px;
+      }
+      .logo-container img {
+         height: 50px;
+      }
+      #features {
+         width: 1000px; /* Set a fixed width */
+         height: 400px; /* Set a fixed height */
+      }
+      #fileNames {
+         height: 400px; /* Set a fixed height */
+      }
+   </style>
+   <!-- Add Bootstrap and jQuery dependencies -->
+   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</head>
+<!--
+This file contains the HTML structure for the features section of the bi_sc_icon_portal_automation_playwright1 project.
+Author: CPG7571
+-->
+<body>
+   <div class="logo-container">
+      <img src="https://playwright.dev/img/playwright-logo.svg" alt="Playwright Logo">
+   </div>
+   <div class="container">
+      <h1 class="mb-4 text-primary">Feature and Tag Selector</h1>
+      <!-- Tab Navigation -->
+      <ul class="nav nav-tabs" id="featureTabs" role="tablist">
+         <li class="nav-item">
+            <a class="nav-link active" id="selectFeaturesTab" data-toggle="tab" href="#selectFeatures" role="tab" aria-controls="selectFeatures" aria-selected="true">Select Features and Tags</a>
+         </li>
+         <li class="nav-item">
+            <a class="nav-link" id="extractTagsTab" data-toggle="tab" href="#extractTags" role="tab" aria-controls="extractTags" aria-selected="false">Extract Tags from Feature Files</a>
+         </li>
+      </ul>
+      <!-- Tab Content -->
+      <div class="tab-content" id="featureTabsContent">
+         <!-- Select Features and Tags Section -->
+         <div class="tab-pane fade show active" id="selectFeatures" role="tabpanel" aria-labelledby="selectFeaturesTab">
+            <div class="left-panel mt-3">
+               <div class="subfolders-container">
+                  <h2>Feature Folders:</h2>
+                  <label>Feature Toggles:</label>
+                  <!-- Subfolder toggle buttons will be dynamically inserted here -->
+               </div>
+               <div class="features-row">
+                  <div class="features-container">
+                     <label for="features">Features:</label>
+                     <div class="select-all-container">
+                        <input type="checkbox" id="selectAllFeatures">
+                        <label for="selectAllFeatures">Select All</label>
+                     </div>
+                     <select id="features" class="form-control" multiple>
+                        <!-- Feature options will be dynamically inserted here -->
+                     </select>
+                  </div>
+               </div>
+               <div class="tags-container">
+                  <h2>Tags:</h2>
+                  <div class="select-all-container">
+                     <input type="checkbox" id="selectAllTags">
+                     <label for="selectAllTags">Select All</label>
+                  </div>
+                  <!-- Tag checkboxes will be dynamically inserted here -->
+               </div>
+            </div>
+         </div>
+         <!-- Extract Tags from Feature Files Section -->
+         <div class="tab-pane fade" id="extractTags" role="tabpanel" aria-labelledby="extractTagsTab">
+            <div class="tags-from-files-container mt-3">
+               <h2>Extract Tags from Feature Files</h2>
+               <p>Enter the feature file names (one per line) to extract tags:</p>
+               <textarea id="fileNames" placeholder="Enter feature file names here..." class="form-control mb-3"></textarea>
+               <div class="d-flex align-items-center">
+                  <button id="extractTagsBtn" class="btn btn-primary mr-2">Extract Tags</button>
+                  <button id="generateCmdFromFilesBtn" class="btn btn-primary">Generate Command</button>
+                  <div id="generateStatus" class="ml-3 text-success" style="display: none;">Generated!</div>
+               </div>
+               <div id="tagsResult" class="result mt-3" style="display: none;"></div>
+            </div>
+         </div>
+      </div>
+      <div class="command-container mt-4">
+         <h2>Generated Playwright Runner Command</h2>
+         <div class="form-group d-flex align-items-center">
+            <label for="runnerType" class="mr-2">Select Runner Type:</label>
+            <select id="runnerType" class="form-control" style="width: auto;">
+               <option value="browserstack" selected>Browserstack</option>
+               <option value="runner">Runner</option>
+            </select>
+         </div>
+         <pre id="commandOutput" class="mt-3"></pre>
+         <div class="d-flex align-items-center justify-content-start mt-2" style="gap: 10px;">
+            <button id="generateCmd" class="btn btn-primary" style="display: none;">Generate Command</button>
+            <button id="copyCmd" class="btn btn-primary">Copy Command</button>
+            <button id="downloadCmd" class="btn btn-secondary">Download as .bat</button>
+         </div>
+         <div id="copyStatus" class="copy-status"></div>
+         <span id="generateStatus" style="display: none; color: green;">Generated!</span>
+      </div>
+   </div>
+ 
+   <script>
+      async function fetchSubfolders() {
+         const featuresDir = './e2e/features';
+         const response = await fetch(`/list-subfolders?dir=${encodeURIComponent(featuresDir)}`);
+         if (!response.ok) {
+            console.error(`Failed to fetch subfolders: ${response.statusText}`);
+            return [];
+         }
+         const subfolders = await response.json();
+         console.log(`Fetched hierarchical subfolders:`, subfolders);
+         return [{ name: 'features', path: featuresDir, subfolders }]; // Include root folder
+      }
+ 
+      function renderSubfolders(subfolders, parentElement, level = 0) {
+         const container = document.createElement('div');
+         container.style.display = 'block'; // Default to vertical layout
+ 
+         // Check if the last subfolder has more than one subfolder
+         const isHorizontalLayout = subfolders.length > 1 && subfolders.length >= 5;
+ 
+         if (isHorizontalLayout) {
+            container.style.display = 'flex';
+            container.style.flexWrap = 'wrap';
+            container.style.gap = '5px'; // Reduced gap size for better spacing
+         }
+ 
+         subfolders.forEach(subfolder => {
+            const subfolderWrapper = document.createElement('div');
+            subfolderWrapper.style.marginLeft = `${10 * level}px`; // Reduced indentation for better view
+ 
+            const toggleButton = document.createElement('button');
+            toggleButton.textContent = subfolder.name;
+            toggleButton.classList.add('btn', 'btn-sm', 'btn-primary', 'btn-toggle');
+            toggleButton.style.margin = '5px';
+            toggleButton.setAttribute('aria-expanded', 'false');
+            toggleButton.setAttribute('data-subfolder', subfolder.path);
+ 
+            const subfolderContainer = document.createElement('div');
+            subfolderContainer.style.display = 'none';
+            subfolderContainer.style.marginTop = '10px';
+ 
+            toggleButton.addEventListener('click', async (event) => {
+               if (!event.ctrlKey) {
+                  // Untoggle all other buttons if Ctrl is not pressed
+                  document.querySelectorAll('.btn-toggle').forEach(btn => {
+                     btn.setAttribute('aria-expanded', 'false');
+                     btn.classList.remove('btn-success');
+                     btn.classList.add('btn-primary');
+                  });
+               }
+ 
+               // Toggle the clicked button
+               const isExpanded = toggleButton.getAttribute('aria-expanded') === 'true';
+               toggleButton.setAttribute('aria-expanded', !isExpanded);
+               toggleButton.classList.toggle('btn-primary', isExpanded);
+               toggleButton.classList.toggle('btn-success', !isExpanded);
+ 
+               // Populate features based on the selected toggles
+               const selectedSubfolders = Array.from(document.querySelectorAll('.btn-toggle[aria-expanded="true"]'))
+                  .map(btn => btn.getAttribute('data-subfolder'));
+               await fetchFeatures(selectedSubfolders);
+ 
+               // Render subfolders dynamically
+               if (!isExpanded && subfolder.subfolders && subfolder.subfolders.length > 0) {
+                  subfolderContainer.innerHTML = ''; // Clear previous content
+                  renderSubfolders(subfolder.subfolders, subfolderContainer, level + 1); // Increment level for nested subfolders
+                  subfolderContainer.style.display = 'block';
+               }
+            });
+ 
+            subfolderWrapper.appendChild(toggleButton);
+            subfolderWrapper.appendChild(subfolderContainer);
+            container.appendChild(subfolderWrapper);
+         });
+ 
+         parentElement.appendChild(container);
+      }
+ 
+      async function fetchFeatures(subfolders = []) {
+         const featuresDir = './e2e/features';
+         const featureFiles = [];
+ 
+         for (const subfolder of subfolders) {
+            const subfolderPath = typeof subfolder === 'string' ? subfolder : subfolder.path; // Ensure correct path is used
+            const response = await fetch(`/list-files?dir=${encodeURIComponent(subfolderPath)}`);
+            if (response.ok) {
+               const files = await response.json();
+               featureFiles.push(...files);
+            } else {
+               console.error(`Failed to fetch files for subfolder ${subfolderPath}: ${response.statusText}`);
+            }
+         }
+ 
+         const featureOptions = featureFiles.map(file => `
+            <option value="${file}">${file.split('/').pop()}</option>
+         `).join('');
+ 
+         const featuresElement = document.getElementById('features');
+         const generateCmdButton = document.getElementById('generateCmd');
+ 
+         if (featuresElement) {
+            featuresElement.innerHTML = featureOptions;
+ 
+            // Attach event listener for manual selection
+            featuresElement.addEventListener('change', () => {
+               const selectAllCheckbox = document.getElementById('selectAllFeatures');
+               if (selectAllCheckbox) {
+                  const allSelected = Array.from(featuresElement.options).every(option => option.selected);
+                  selectAllCheckbox.checked = allSelected; // Uncheck "Select All" if not all options are selected
+               }
+ 
+               // Show or hide the "Generate Command" button based on selection
+               const hasSelectedFeatures = Array.from(featuresElement.selectedOptions).length > 0;
+               generateCmdButton.style.display = hasSelectedFeatures ? 'block' : 'none';
+ 
+               // Fetch tags for manually selected features
+               const selectedFeatures = Array.from(featuresElement.selectedOptions).map(option => option.value);
+               generateTagsFromSelectedFeatures(selectedFeatures);
+            });
+         }
+ 
+         // Attach event listener for "Select All" checkbox
+         const selectAllCheckbox = document.getElementById('selectAllFeatures');
+         if (selectAllCheckbox) {
+            selectAllCheckbox.checked = false; // Reset checkbox state
+            selectAllCheckbox.addEventListener('change', async (event) => {
+               const isChecked = event.target.checked;
+               Array.from(featuresElement.options).forEach(option => {
+                  option.selected = isChecked;
+               });
+ 
+               // Show or hide the "Generate Command" button based on selection
+               generateCmdButton.style.display = isChecked ? 'block' : 'none';
+ 
+               // Fetch tags for all selected features
+               const selectedFeatures = Array.from(featuresElement.options)
+                  .filter(option => option.selected)
+                  .map(option => option.value);
+ 
+               if (selectedFeatures.length > 0) {
+                  await generateTagsFromSelectedFeatures(selectedFeatures);
+               } else {
+                  // Clear tags if no features are selected
+                  document.querySelector('.tags-container').innerHTML = `
+                     <h2>Tags:</h2>
+                     <div class="select-all-container">
+                        <input type="checkbox" id="selectAllTags">
+                        <label for="selectAllTags">Select All</label>
+                     </div>
+                  `;
+               }
+            });
+         }
+ 
+         return featureFiles;
+      }
+ 
+      async function generateTagsFromSelectedFeatures(selectedFeatures) {
+         if (selectedFeatures.length === 0) {
+            alert('Please select at least one feature to generate tags.');
+            return;
+         }
+ 
+         try {
+            const tags = await fetchTags(selectedFeatures);
+            const tagsElement = document.querySelector('.tags-container');
+            if (tagsElement) {
+               const tagCheckboxes = tags.map(tag => `
+                  <div class="form-check">
+                     <input class="form-check-input" type="checkbox" value="${tag}" id="${tag}">
+                     <label class="form-check-label" for="${tag}">
+                        ${tag}
+                     </label>
+                  </div>
+               `).join('');
+               tagsElement.innerHTML = `
+                  <h2>Tags:</h2>
+                  <div class="select-all-container">
+                     <input type="checkbox" id="selectAllTags">
+                     <label for="selectAllTags">Select All</label>
+                  </div>
+                  ${tagCheckboxes}
+               `;
+ 
+               // Attach "Select All" functionality for tags
+               document.getElementById('selectAllTags').addEventListener('change', (event) => {
+                  const isChecked = event.target.checked;
+                  document.querySelectorAll('.tags-container .form-check-input').forEach(checkbox => {
+                     checkbox.checked = isChecked;
+                  });
+               });
+            }
+         } catch (error) {
+            console.error('Error generating tags:', error);
+            alert('Failed to generate tags from the selected features.');
+         }
+      }
+ 
+      async function fetchTags(files) {
+         const tags = new Set();
+         for (const file of files) {
+            const encodedFile = encodeURIComponent(file);
+            const response = await fetch(`/feature-tags?file=${encodedFile}`);
+            if (response.ok) {
+               const fileTags = await response.json();
+               fileTags.forEach(tag => tags.add(tag));
+            } else {
+               console.error(`Failed to fetch tags for ${file}: ${response.statusText}`);
+            }
+         }
+         return Array.from(tags);
+      }
+ 
+      async function fetchAllFeatureFiles() {
+         const featuresDir = './e2e/features';
+         const response = await fetch(`/list-files?dir=${encodeURIComponent(featuresDir)}`);
+         if (!response.ok) {
+            console.error(`Failed to fetch feature files: ${response.statusText}`);
+            return [];
+         }
+         const featureFiles = await response.json();
+         const normalizedFeatureFiles = featureFiles.map(file => file.replace(/\\/g, '/'));
+         console.log(`Fetched and normalized feature files:`, normalizedFeatureFiles);
+         return normalizedFeatureFiles;
+      }
+ 
+      async function extractTagsFromFileNames() {
+         const fileNames = document.getElementById('fileNames').value
+            .split('\n')
+            .map(name => name.trim())
+            .filter(name => name);
+ 
+         if (fileNames.length === 0) {
+            alert('Please enter at least one feature file name.');
+            return [];
+         }
+ 
+         console.log(`Provided feature file names:`, fileNames);
+ 
+         const allFeatureFiles = await fetchAllFeatureFiles();
+         const matchedFiles = fileNames.map(name => {
+            const baseName = name.split(/[/\\]/).pop().replace('.feature', ''); // Extract base file name
+            const matchedFile = allFeatureFiles.find(file => {
+               const fileBaseName = file.split(/[/\\]/).pop().replace('.feature', '');
+               return fileBaseName === baseName;
+            });
+            if (!matchedFile) {
+               console.error(`Feature file not found: ${name}`);
+            }
+            return matchedFile;
+         }).filter(Boolean);
+ 
+         if (matchedFiles.length === 0) {
+            alert('No matching feature files found.');
+            return [];
+         }
+ 
+         console.log(`Matched feature files:`, matchedFiles);
+ 
+         try {
+            const response = await fetch('/tags-from-files', {
+               method: 'POST',
+               headers: { 'Content-Type': 'application/json' },
+               body: JSON.stringify({ files: matchedFiles })
+            });
+ 
+            if (!response.ok) {
+               throw new Error(`Error: ${response.statusText}`);
+            }
+ 
+            const result = await response.json();
+            displayTagsResult(result);
+            return result.flatMap(item => item.tags || []);
+         } catch (error) {
+            alert(`Failed to extract tags: ${error.message}`);
+            return [];
+         }
+      }
+ 
+      async function generateCommandFromFiles() {
+         const tags = await extractTagsFromFileNames();
+         if (!tags || tags.length === 0) {
+            alert('No tags found to generate the command.');
+            return;
+         }
+ 
+         const uniqueTags = [...new Set(tags)];
+         const command = `npm run browserstack -- --tags="${uniqueTags.join(' or ')}"`;
+         document.getElementById('commandOutput').textContent = command;
+         const generateStatus = document.getElementById('generateStatus');
+         // Display "Generated!" message
+         if (generateStatus) {
+            generateStatus.style.display = 'inline';
+            setTimeout(() => {
+               generateStatus.style.display = 'none';
+            }, 2000); // Hide after 2 seconds
+         }
+      }
+ 
+      function displayTagsResult(data) {
+         const resultDiv = document.getElementById('tagsResult');
+         resultDiv.style.display = 'block';
+         resultDiv.innerHTML = '<h3>Tags Extracted:</h3>';
+         data.forEach(item => {
+            if (item.error) {
+               resultDiv.innerHTML += `<p><strong>${item.file}:</strong> ${item.error}</p>`;
+            } else {
+               resultDiv.innerHTML += `<p><strong>${item.file}:</strong> ${item.tags.join(', ') || 'No tags found'}</p>`;
+            }
+         });
+      }
+ 
+      document.addEventListener('DOMContentLoaded', async () => {
+         const subfolders = await fetchSubfolders();
+         console.log('Fetched subfolders:', subfolders); // Debugging log
+ 
+         const subfoldersElement = document.querySelector('.subfolders-container');
+ 
+         if (subfoldersElement) {
+            renderSubfolders(subfolders, subfoldersElement);
+            console.log('Subfolders rendered into the container'); // Debugging log
+         } else {
+            console.error('Subfolders element not found in the DOM');
+         }
+ 
+       
+ 
+         document.querySelectorAll('.subfolders-container .btn-toggle').forEach(button => {
+            button.setAttribute('aria-expanded', 'false'); // Set aria-expanded to false by default
+            button.addEventListener('click', async (event) => {
+               const button = event.target;
+               const isPressed = button.getAttribute('aria-pressed') === 'true';
+               button.setAttribute('aria-pressed', !isPressed);
+               button.classList.toggle('btn-primary', !isPressed);
+               button.classList.toggle('btn-secondary', isPressed);
+ 
+               const selectedSubfolders = Array.from(document.querySelectorAll('.subfolders-container .btn-toggle[aria-pressed="true"]')).map(btn => btn.getAttribute('data-subfolder'));
+               await fetchFeatures(selectedSubfolders);
+            });
+         });
+ 
+         const featureFiles = await fetchFeatures(subfolders);
+ 
+         document.getElementById('features').addEventListener('change', async () => {
+            const selectedFeatures = Array.from(document.getElementById('features').selectedOptions).map(option => option.value);
+            await generateTagsFromSelectedFeatures(selectedFeatures);
+         });
+ 
+         document.getElementById('generateCmd').addEventListener('click', () => {
+            const selectedFeatures = Array.from(document.getElementById('features').selectedOptions).map(option => option.value);
+            const selectedTags = Array.from(document.querySelectorAll('.tags-container input:checked')).map(input => input.value);
+            const command = selectedTags.length > 0
+               ? `npm run browserstack -- --tags="${selectedTags.join(' or ').replace(/^on or /, '')}"`
+               : 'npm run runner';
+            document.getElementById('commandOutput').textContent = command;
+         });
+ 
+         document.getElementById('copyCmd').addEventListener('click', () => {
+            const commandOutput = document.getElementById('commandOutput').textContent;
+            navigator.clipboard.writeText(commandOutput).then(() => {
+               document.getElementById('copyStatus').textContent = 'Copied!';
+               setTimeout(() => {
+                  document.getElementById('copyStatus').textContent = '';
+               }, 2000);
+            }).catch(err => {
+               console.error('Failed to copy command: ', err);
+            });
+         });
+ 
+         document.getElementById('generateCmdFromFilesBtn').addEventListener('click', generateCommandFromFiles);
+         document.getElementById('extractTagsBtn').addEventListener('click', extractTagsFromFileNames);
+ 
+         const runnerTypeElement = document.getElementById('runnerType');
+         const commandOutputElement = document.getElementById('commandOutput');
+ 
+         function updateCommand() {
+            const runnerType = runnerTypeElement.value;
+            const currentCommand = commandOutputElement.textContent;
+            const updatedCommand = currentCommand.replace(/npm run (browserstack|runner)/, `npm run ${runnerType}`);
+            commandOutputElement.textContent = updatedCommand;
+         }
+ 
+         // Initialize the default command
+         if (!commandOutputElement.textContent) {
+            commandOutputElement.textContent = 'npm run browserstack';
+         }
+ 
+         // Update command on runner type change
+         runnerTypeElement.addEventListener('change', updateCommand);
+ 
+         document.getElementById('copyCmd').addEventListener('click', () => {
+            const commandOutput = commandOutputElement.textContent;
+            navigator.clipboard.writeText(commandOutput).then(() => {
+               document.getElementById('copyStatus').textContent = 'Copied!';
+               setTimeout(() => {
+                  document.getElementById('copyStatus').textContent = '';
+               }, 2000);
+            }).catch(err => {
+               console.error('Failed to copy command: ', err);
+            });
+         });
+ 
+         document.getElementById('downloadCmd').addEventListener('click', () => {
+            const commandOutput = document.getElementById('commandOutput').textContent;
+            if (!commandOutput) {
+               alert('No command to download. Please generate a command first.');
+               return;
+            }
+ 
+            const blob = new Blob([commandOutput], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'runnerCommand.bat';
+            a.click();
+            URL.revokeObjectURL(url);
+         });
+      });
+   </script>
+   <script>
+      document.addEventListener('DOMContentLoaded', async () => {
+         const runnerTypeElement = document.getElementById('runnerType');
+         const commandOutputElement = document.getElementById('commandOutput');
+ 
+         function updateCommand() {
+            const runnerType = runnerTypeElement.value;
+            const currentCommand = commandOutputElement.textContent;
+            const updatedCommand = currentCommand.replace(/npm run (browserstack|runner)/, `npm run ${runnerType}`);
+            commandOutputElement.textContent = updatedCommand;
+         }
+ 
+         function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+               document.getElementById('copyStatus').textContent = 'Copied!';
+               setTimeout(() => {
+                  document.getElementById('copyStatus').textContent = '';
+               }, 2000);
+            }).catch(err => {
+               console.error('Failed to copy command: ', err);
+            });
+         }
+ 
+         function downloadAsBatFile(text) {
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'runnerCommand.bat';
+            a.click();
+            URL.revokeObjectURL(url);
+         }
+ 
+         // Initialize the command based on the selected runner type
+         if (!commandOutputElement.textContent) {
+            const runnerType = runnerTypeElement.value;
+            commandOutputElement.textContent = `npm run ${runnerType}`;
+         }
+ 
+         // Update command on runner type change
+         runnerTypeElement.addEventListener('change', updateCommand);
+ 
+         document.getElementById('generateAndCopyCmd').addEventListener('click', () => {
+            const runnerType = runnerTypeElement.value; // Get the currently selected runner type
+            const selectedTags = Array.from(document.querySelectorAll('.tags-container input:checked')).map(input => input.value);
+            const command = selectedTags.length > 0
+               ? `npm run ${runnerType} -- --tags="${selectedTags.join(' or ')}"`
+               : `npm run ${runnerType}`;
+            commandOutputElement.textContent = command;
+ 
+            // Copy the generated command to clipboard
+            copyToClipboard(command);
+         });
+ 
+         document.getElementById('downloadCmd').addEventListener('click', () => {
+            const commandOutput = commandOutputElement.textContent;
+            if (!commandOutput) {
+               alert('No command to download. Please generate a command first.');
+               return;
+            }
+ 
+            downloadAsBatFile(commandOutput);
+         });
+      });
+   </script>
+</body>
+</html>
+ 
+ 
